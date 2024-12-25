@@ -1,0 +1,5 @@
+Actually check if the number being used in push/pop is a variable.
+File editing/reading.
+arrays, structures. (Should probably be done in the actual compiler.)
+Running external files and their stacks.
+Un-whole numbers will be done in fixed-point notation! seperated into two short ints compared to the normal number's long int.
