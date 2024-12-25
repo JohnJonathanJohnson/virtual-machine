@@ -128,15 +128,15 @@ void clone(long orig, long clon) {
 
 long fixed2dec(long num) {
 
-	long i = 1000000;
+	long i = 500000;
 	long ret_num = 0;
 
-	for(short count = 15; count > 0; count--) {
-		i /= 2;
+	for(short count = 15; count >= 0; count--) {
 		if (num >= 1 << count) {
 			num -= 1 << count;
 			ret_num += i;
 		}
+		i /= 2;
 	}
 
 	return ret_num;
@@ -167,15 +167,15 @@ int main() {
 	push(0, 17, 0); //PRINT
 	push(0, 11, 0);	//IF
 	push(0, 15, 0); //MORE THAN
-	push(0, 10 << 16, 2); //10.0
+	push(0, 9 << 16, 2); //10.0
 	push(0, 17, 0); //PRINT
 	push(0, '\n', 3); //NEWLINE
-	push(0, 9, 0); //MPY
-	push(0, 7 << 15, 2); //3.5
+	push(0, 10, 0); //MPY
+	push(0, 19 << 12, 2); //19/16
 	push(0, 2, 0); //POP
-	push(0, 2, -1); //FIRST_VAR
+	push(0, 2, -1); //FIRST_VAR 
 	push(0, 9, 0); //MPY
-	push(0, 7 << 15, 2); //3.5
+	push(0, 19 << 12, 2); //19/16
 	push(0, 3, 0); //PEEK
 	push(0, 2, -1); //FIRST_VAR
 	push(0, 17, 0); //PRINT
@@ -277,7 +277,7 @@ L9:	//mpy.
 	} else if ((top.type == 1 || top.type == 3) || (peek(1).type == 1 || peek(1).type == 3)) {
 		push(1, pop(1).val * top.val, 2);
 	} else {
-		push(1, (long long)((pop(1).val) * (top.val)) >> 16, 2);
+		push(1, ((long long)(pop(1).val) * (long long)(top.val)) >> 16, 2); //still very rough.
 	}
 	goto L0;
 
@@ -327,16 +327,15 @@ L16:	//not.
 L17:	//print.
 	switch (peek(1).type) {
 		case 1: printf("%ld", pop(1).val); break;
-		case 2: top.val = 1;
-			fback = fixed2dec((short)(peek(1).val));
+		case 2:	ffront = peek(1).val >> 16;
+			fback = fixed2dec(peek(1).val - (ffront << 16));
+			top.val = fback;
 			printf("%ld.", pop(1).val >> 16);
-			while (fback < 10000 && fback != 0) {
-				fback *= 10;
-				printf("%ld", fback);
+			while (top.val < 100000 && top.val != 0) {
 				top.val *= 10;
 				fputc('0', stdout);
 			}
-			printf("%ld", fback / top.val);
+			printf("%ld", fback);
 			break;
 		case 3: fputc(pop(1).val, stdout); break;
 		default: return 4;
@@ -344,7 +343,6 @@ L17:	//print.
 	goto L0;
 	
 L18:	//scan. It's input as the latest, I need to put it at the bottom not the top.
-
 	push(1, fgetc(stdin), 3);
 	goto L0;
 
