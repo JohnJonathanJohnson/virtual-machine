@@ -170,11 +170,11 @@ int main() {
 	push(0, 10 << 16, 2); //10.0
 	push(0, 17, 0); //PRINT
 	push(0, '\n', 3); //NEWLINE
-	push(0, 10, 0); //DIV
+	push(0, 9, 0); //MPY
 	push(0, 7 << 15, 2); //3.5
 	push(0, 2, 0); //POP
 	push(0, 2, -1); //FIRST_VAR
-	push(0, 10, 0); //DIV
+	push(0, 9, 0); //MPY
 	push(0, 7 << 15, 2); //3.5
 	push(0, 3, 0); //PEEK
 	push(0, 2, -1); //FIRST_VAR
@@ -277,7 +277,7 @@ L9:	//mpy.
 	} else if ((top.type == 1 || top.type == 3) || (peek(1).type == 1 || peek(1).type == 3)) {
 		push(1, pop(1).val * top.val, 2);
 	} else {
-		push(1, (long)((long long)(pop(1).val) * (long long)(top.val)) >> 16, 2);
+		push(1, (long long)((pop(1).val) * (top.val)) >> 16, 2);
 	}
 	goto L0;
 
