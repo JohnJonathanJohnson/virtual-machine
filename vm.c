@@ -162,13 +162,13 @@ int main() {
 	//Reminder that variables start at 2.
 	//A little weird-looking because IF is supposed to
 	//be used with a user-defined enclosure.
-	push(0, 17, 0); //PRINT
+	push(0, 19, 0); //PRINT
 	push(0, '\n', 3); //NEWLINE
-	push(0, 17, 0); //PRINT
 	push(0, 11, 0);	//IF
+	push(0, 19, -2); //PRINT (in a box)
 	push(0, 15, 0); //MORE THAN
 	push(0, 9 << 16, 2); //10.0
-	push(0, 17, 0); //PRINT
+	push(0, 19, 0); //PRINT
 	push(0, '\n', 3); //NEWLINE
 	push(0, 10, 0); //MPY
 	push(0, 19 << 12, 2); //19/16
@@ -178,12 +178,12 @@ int main() {
 	push(0, 19 << 12, 2); //19/16
 	push(0, 3, 0); //PEEK
 	push(0, 2, -1); //FIRST_VAR
-	push(0, 17, 0); //PRINT
+	push(0, 19, 0); //PRINT
 	push(0, 3, 0); //PEEK
 	push(0, 2, -1); //FIRST_VAR
 	push(0, 1, 0); //PUSH
-	push(0, 21, 0); //FIXED
-	push(0, 18, 0); //SCAN
+	push(0, 23, 0); //FIXED
+	push(0, 20, 0); //SCAN
 	push(0, 2, -1); //FIRST_VAR To sum up: FIRST_VAR SCAN INT PUSH FIRST_VAR PEEK PRINT FIRST_VAR PEEK 3 DIV FIRST_VAR POP 3 DIV CHAR \n PRINT 10 > IF PRINT CHAR \n PRINT
 	//End of global code.
 	goto L0;
@@ -213,27 +213,29 @@ L0:
 			case 14: goto L14; break;	//LESS THAN
 			case 15: goto L15; break;	//MORE THAN
 			case 16: goto L16; break;	//NOT
-			case 17: goto L17; break;	//PRINT
-			case 18: goto L18; break;	//SCAN
-			case 19: goto L19; break;	//SIZE
-			case 20: goto L20; break;	//INT
-			case 21: goto L21; break;	//FIXED
-			case 22: goto L22; break;	//CHAR
+			case 17: goto L17; break;	//AND
+			case 18: goto L18; break;	//OR
+			case 19: goto L19; break;	//PRINT
+			case 20: goto L20; break;	//SCAN
+			case 21: goto L21; break;	//SIZE
+			case 22: goto L22; break;	//INT
+			case 23: goto L23; break;	//FIXED
+			case 24: goto L24; break;	//CHAR
 			default: return 1;
 		}
 
 		default: push(1, top.val, top.type); goto L0;
 	}
 L1:	//push into var.
-	if (peek(1).type == -2) push(pop(1).val, pop(1).val, 0); else push(pop(1).val, pop(1).val, peek(1).type);
+	push(pop(1).val, pop(1).val, peek(1).type);
 	goto L0;
 
 L2:	//pop from var.
-	push(1, pop(pop(1).val).val, peek(peek(1).val).type);
+	if (peek(peek(1).val).type == -2) push(0, pop(pop(1).val).val, 0); else push(1, pop(pop(1).val).val, peek(peek(1).val).type);
 	goto L0;
 
 L3:	//peek var.
-	push(1, peek(pop(1).val).val, peek(peek(1).val).type);
+	if (peek(peek(1).val).type == -2) push(0, peek(pop(1).val).val, 0); else push(1, peek(pop(1).val).val, peek(peek(1).val).type);
 	goto L0;
 
 L4:	//rename var.
@@ -293,9 +295,11 @@ L10:	//div. To be fixed.
 	goto L0;
 
 L11:	//if. no else.
+	top = pop(1);
+	if (top.type != -2) return 3;
 	switch (pop(1).val) {
-		case 0: pop(0); break;
-		case 1: break;
+		case 0: break;
+		case 1: push(0, top.val, 0); break;
 		default: return 3;
 	}
 	goto L0;
@@ -308,7 +312,7 @@ L13:	//unequal.
 	if (pop(1).val != pop(1).val) push(1, 1, 1); else push(1, 0, 1);
 	goto L0;
 
-L14:	//less than. Reversed beause of how C works...
+L14:	//less than. Reversed because of how C works...
 	if (pop(1).val <= pop(1).val) push(1, 0, 1); else push(1, 1, 1);
 	goto L0;
 
@@ -324,7 +328,15 @@ L16:	//not.
 	}
 	goto L0;
 
-L17:	//print.
+L17:	//and.
+	push(1, pop(1).val & pop(1).val, 1);
+	goto L0;
+
+L18:	//or.
+	push(1, pop(1).val | pop(1).val, 1);
+	goto L0;
+
+L19:	//print.
 	switch (peek(1).type) {
 		case 1: printf("%ld", pop(1).val); break;
 		case 2:	ffront = peek(1).val >> 16;
@@ -342,16 +354,16 @@ L17:	//print.
 	}
 	goto L0;
 	
-L18:	//scan. It's input as the latest, I need to put it at the bottom not the top.
+L20:	//scan. It's input as the latest, I need to put it at the bottom not the top.
 	push(1, fgetc(stdin), 3);
 	goto L0;
 
-L19:	//size.
+L21:	//size.
 	if (peek(1).type == -1) push(1, size(pop(1).val), 1);
 	else return 5;
 	goto L0;
 	
-L20:	//cast to int.
+L22:	//cast to int.
 	switch (peek(1).type) {
 		case 1: push(1, pop(1).val, 1); break;
 		case 2: push(1, pop(1).val >> 16, 1); break;
@@ -360,7 +372,7 @@ L20:	//cast to int.
 	}
 	goto L0;
 	
-L21:	//cast to fixed.
+L23:	//cast to fixed.
 	switch (peek(1).type) {
 		case 1: push(1, pop(1).val << 16, 2); break;
 		case 2: push(1, pop(1).val, 2); break;
@@ -369,7 +381,7 @@ L21:	//cast to fixed.
 	}
 	goto L0;
 	
-L22:	//cast to char.
+L24:	//cast to char.
 	switch (peek(1).type) {
 		case 1: push(1, (char)(pop(1).val), 3); break;
 		case 2: push(1, (char)(pop(1).val >> 16), 3); break;
